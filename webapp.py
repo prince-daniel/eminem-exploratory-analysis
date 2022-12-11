@@ -94,7 +94,7 @@ with visualization:
     #albums
     # album_piechart = px.pie(albums, values='song_count',names='album',title="album overview")
     donut_album = go.Figure(data=[go.Pie(values=albums['song_count'],labels=albums['album'], hole=0.5, title='albums')])
-    donut_album.update_layout(margin=dict(t=0, b=0, l=0, r=0))
+    # donut_album.update_layout(margin=dict(t=0, b=0, l=0, r=0))
     visualization.write(donut_album)
 
     #words_rapped by album
@@ -108,17 +108,17 @@ with visualization:
     critic_score_line, user_score_line = visualization.columns(2)
     #user vs critics (linechart)
     critic_score = px.line(albums.query('critic_score != 0'), x='year', y='critic_score', markers=True, hover_data=['critic_rating'])
-    critic_score.update_layout(margin = dict(t=0, b=0, l=0, r=0))
+    # critic_score.update_layout(margin = dict(t=0, b=0, l=0, r=0))
     critic_score_line.write(critic_score)
 
     user_score = px.line(albums, x='year', y='user_score', markers=True, hover_data=['user_rating'])
-    user_score.update_layout(margin = dict(t=0, b=0, l=0, r=0))
+    # user_score.update_layout(margin = dict(t=0, b=0, l=0, r=0))
     user_score_line.write(user_score)
 
     visualization.markdown("""<h6 style="text-align: right;">scores obtained from <a href='https://www.albumoftheyear.org/artist/104-eminem/'>albumoftheyear.org<a></h6>""",unsafe_allow_html=True)
 
     words_box = px.box(songs[['words']], y='words')
-    words_box.update_layout(margin = dict(t=0, b=0, l=250, r=250))
+    # words_box.update_layout(margin = dict(t=0, b=0, l=250, r=250))
     visualization.write(words_box)
 
     visualization.image(f'{img_path}/blue-wordcloud.jpg', use_column_width='auto')
@@ -140,7 +140,7 @@ with youtube:
     year_grouped = year_df[['year','views']].groupby('year', as_index=False).sum()
     video_dist = px.violin(year_grouped, y = year_grouped['views'], box=True, # draw box plot inside the violin
                 points='all', width=600, height=1200, hover_data=['year'], title='Distribution of Views by Year')
-    video_dist.update_layout(margin=dict(t=0, b=0, l=350, r=350))
+    # video_dist.update_layout(margin=dict(t=0, b=0, l=350, r=350))
     youtube.write(video_dist)
     
     #view trends
