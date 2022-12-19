@@ -46,7 +46,7 @@ with st.sidebar:
             <li>Broke 2 Guinness World Records For Fast Rapping</li>
         </ul>
         <ul style="list-style-type: none;">
-        <li><i>“You don’t get another chance, life is no Nintendo game.”</i></li>
+        <li><b><i>“You don’t get another chance, life is no Nintendo game.”</i><b></li>
         </ul>
         </center>
     """,unsafe_allow_html=True)
