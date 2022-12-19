@@ -50,7 +50,6 @@ with st.sidebar:
         </ul>
         </center>
     """,unsafe_allow_html=True)
-    # st.caption("an outsider who proved himself. he had a turbulent childhood, marked by poverty and allegations of abuse")
 
 #cols
 time_cols = ['duration']
@@ -65,11 +64,7 @@ songs = pd.read_json(f'{data_path}/processed_songs.json', lines=True)
 eminem_yt = pd.read_csv(f'{data_path}/eminem_yt.csv')
 eminem_yt[datetime_cols] = eminem_yt[datetime_cols].astype('datetime64')
 
-
-
-
 words_by_album = songs.groupby(by='album', as_index=False).agg(sum)
-
 
 title = st.container()
 content = st.container()
@@ -78,8 +73,6 @@ visualization = st.container()
 youtube = st.container()
 references = st.container()
 wave = st.container()
-
-
 
 with dataset:
     albums_dataset, songs_dataset = dataset.columns(2)
@@ -91,7 +84,6 @@ with dataset:
     songs_dataset.title(f'songs ({len(songs)})')
     songs_dataset.write(songs[['album','title','lyrics']].head(len(songs)))
     dataset.markdown("""<h6 style="text-align: right;">analysis has been performed on feasible scraped data and also excluding intro, interlude, skit & outro &#128591;</h6><br>""",unsafe_allow_html=True)
-    # dataset.markdown("""<h6 style="text-align: right;">* </h6>""",unsafe_allow_html=True)
 
 
 with visualization:
@@ -107,7 +99,6 @@ with visualization:
     music_duration.subheader("{} seconds/ {} minutes/ {} hours of :musical_note:".format(songs['duration_in_secs'].sum(),songs['duration_in_mins'].sum(),round(songs['duration_in_mins'].sum()/60,2)))
 
     #albums
-    # album_piechart = px.pie(albums, values='song_count',names='album',title="album overview")
     donut_album = go.Figure(data=[go.Pie(values=albums['song_count'],labels=albums['album'], hole=0.5, title='albums')])
     donut_album.update_layout(margin=dict(t=0, b=0, l=0, r=0))
     visualization.plotly_chart(donut_album, theme='streamlit', use_container_width=True)
@@ -117,9 +108,6 @@ with visualization:
     bar = px.bar(words_by_album, x="album", y="words", barmode='group')
     bar.update_layout(margin=dict(t=0, b=0, l=0, r=0))
     visualization.plotly_chart(bar, theme='streamlit', use_container_width=True)
-    # bar = px.bar(songs[['album','title','words']],x='album',y='words', color='title')
-    # bar.update_layout(margin=dict(t=0, b=0, l=0, r=0))
-    # visualization.write(bar)
 
     critic_score_line, user_score_line = visualization.columns(2)
     #user vs critics (linechart)
@@ -165,7 +153,7 @@ with youtube:
     #popular day of upload
     eminem_yt['day_of_week'] = eminem_yt['uploaded_at'].dt.day_name()
     days_of_upload = eminem_yt.groupby('day_of_week', as_index=False).count()
-    day_pie = px.pie(days_of_upload, values='title', names = 'day_of_week', title='Day Of Uploads')
+    day_pie = px.pie(days_of_upload, values='title', names = 'day_of_week', title='YouTube Day of Upload')
     day_pie.update_layout(margin=dict(t=30, b=30, l=30, r=30))
     upload_left, upload, upload_right = youtube.columns([1,2,1])
     upload.plotly_chart(day_pie, theme='streamlit', use_container_width=True)
