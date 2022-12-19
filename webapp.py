@@ -90,7 +90,7 @@ with dataset:
     #adding songs dataset
     songs_dataset.title(f'songs ({len(songs)})')
     songs_dataset.write(songs[['album','title','lyrics']].head(len(songs)))
-    dataset.markdown("""<h6 style="text-align: right;">analysis has been performed on feasible scraped data and also exluding intro, interlude, skit & outro &#128591;</h6><br>""",unsafe_allow_html=True)
+    dataset.markdown("""<h6 style="text-align: right;">analysis has been performed on feasible scraped data and also excluding intro, interlude, skit & outro &#128591;</h6><br>""",unsafe_allow_html=True)
     # dataset.markdown("""<h6 style="text-align: right;">* </h6>""",unsafe_allow_html=True)
 
 
