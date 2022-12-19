@@ -18,6 +18,15 @@ img_path = Path(__file__).parent / "img"
 #layout
 st.set_page_config(layout="wide")
 
+page_bg = f"""
+<style>
+[data-testid='stAppViewContainer'] {{
+    background-image: url('https://i.gadgets360cdn.com/large/eminem_bayc_ape_nft_opensea_twitter_large_1641207298788.jpg?downsize=950:*')
+}}
+</style>
+"""
+
+# st.markdown(page_bg, unsafe_allow_html=True)
 st.title("an exploratory analysis on eminem's")
 
 
@@ -27,13 +36,12 @@ with st.sidebar:
         <ul style="list-style-type: none;">
             <li><img src="https://cdn.albumoftheyear.org/artists/sq/eminem_1579280783.jpg" alt="Eminem" style="border-radius: 50%; width: 250px; height: 250px;"></li>
             <li></br></li>
-            <li>17 October 1972</li>
+            <li>Marshall Bruce Mathers A.K.A Eminem</li>
         </ul>
         <ul style="list-style-type: none;">
-        <li><b>notable achievements</b></li>
         <li>First Artist to Have 10 Consecutive Number-One Albums</li>
             <li>First Rapper to Win an Oscar</li>
-            <li>Bagged 15 Grammys</li>
+            <li>15 Grammys</li>
             <li>Top selling artist of the 2000s</li>
             <li>Broke 2 Guinness World Records For Fast Rapping</li>
         </ul>
@@ -82,11 +90,18 @@ with dataset:
     #adding songs dataset
     songs_dataset.title(f'songs ({len(songs)})')
     songs_dataset.write(songs[['album','title','lyrics']].head(len(songs)))
-    dataset.markdown("""<h6 style="text-align: right;">analysis has been performed on feasible scraped data and also exluding intro, interlude, skit & outro &#128591;</h6>""",unsafe_allow_html=True)
+    dataset.markdown("""<h6 style="text-align: right;">analysis has been performed on feasible scraped data and also exluding intro, interlude, skit & outro &#128591;</h6><br>""",unsafe_allow_html=True)
     # dataset.markdown("""<h6 style="text-align: right;">* </h6>""",unsafe_allow_html=True)
 
+
 with visualization:
-    visualization.title("let's take a look :eyes:")
+    # visualization.title("let's take a look :eyes:")
+    visualization.markdown("""
+        <center>
+        <img src="https://media.tenor.com/DKdtevWRXvsAAAAC/lets-have-a-look-gill.gif" width="546" height="546" alt="Lets Have A Look Gill GIF - Lets Have A Look Gill Engvid GIFs" style="max-width: 546px;">
+        </center>
+    """,unsafe_allow_html=True)
+    visualization.write('\n')
     words_rapped, music_duration = visualization.columns(2)
     words_rapped.subheader(f":speaking_head_in_silhouette: {songs['words'].sum()} words")
     music_duration.subheader("{} seconds/ {} minutes/ {} hours of :musical_note:".format(songs['duration_in_secs'].sum(),songs['duration_in_mins'].sum(),round(songs['duration_in_mins'].sum()/60,2)))
@@ -94,13 +109,14 @@ with visualization:
     #albums
     # album_piechart = px.pie(albums, values='song_count',names='album',title="album overview")
     donut_album = go.Figure(data=[go.Pie(values=albums['song_count'],labels=albums['album'], hole=0.5, title='albums')])
-    # donut_album.update_layout(margin=dict(t=0, b=0, l=0, r=0))
-    visualization.write(donut_album)
+    donut_album.update_layout(margin=dict(t=0, b=0, l=0, r=0))
+    visualization.plotly_chart(donut_album, theme='streamlit', use_container_width=True)
+    # visualization.write(donut_album)
 
     #words_rapped by album
     bar = px.bar(words_by_album, x="album", y="words", barmode='group')
     bar.update_layout(margin=dict(t=0, b=0, l=0, r=0))
-    visualization.write(bar)
+    visualization.plotly_chart(bar, theme='streamlit', use_container_width=True)
     # bar = px.bar(songs[['album','title','words']],x='album',y='words', color='title')
     # bar.update_layout(margin=dict(t=0, b=0, l=0, r=0))
     # visualization.write(bar)
@@ -108,50 +124,51 @@ with visualization:
     critic_score_line, user_score_line = visualization.columns(2)
     #user vs critics (linechart)
     critic_score = px.line(albums.query('critic_score != 0'), x='year', y='critic_score', markers=True, hover_data=['critic_rating'])
-    # critic_score.update_layout(margin = dict(t=0, b=0, l=0, r=0))
-    critic_score_line.write(critic_score)
+    critic_score_line.plotly_chart(critic_score, theme='streamlit', use_container_width=True)
 
     user_score = px.line(albums, x='year', y='user_score', markers=True, hover_data=['user_rating'])
     # user_score.update_layout(margin = dict(t=0, b=0, l=0, r=0))
-    user_score_line.write(user_score)
+    user_score_line.plotly_chart(user_score, theme='streamlit', use_container_width=True)
 
     visualization.markdown("""<h6 style="text-align: right;">scores obtained from <a href='https://www.albumoftheyear.org/artist/104-eminem/'>albumoftheyear.org<a></h6>""",unsafe_allow_html=True)
 
-    words_box = px.box(songs[['words']], y='words')
-    # words_box.update_layout(margin = dict(t=0, b=0, l=250, r=250))
-    visualization.write(words_box)
+    box_left, box_mid, box_right = visualization.columns([1,2,1])
+    words_box = px.box(songs[['words']], y='words', height=800)
+    box_mid.plotly_chart(words_box, theme='streamlit', use_container_width=True)
 
-    visualization.image(f'{img_path}/blue-wordcloud.jpg', use_column_width='auto')
+    visualization.image(f'{img_path}/blue-wordcloud.jpg', use_column_width='auto', caption='most used words in his songs')
 
 with youtube:
     #picking up top 5 most viewed video
     most_viewed = eminem_yt[['title','views']].sort_values(by=['views'], ascending=[False])[0:10][::-1]
     most_viewed_bar = px.bar(most_viewed, x='views', y='title', orientation='h', title='Most Viewed Videos')
-    youtube.write(most_viewed_bar)
+    youtube.plotly_chart(most_viewed_bar, theme='streamlit', use_container_width=True)
     
     #picking up top 5 videos by likes
     most_liked = eminem_yt[['title','likes']].sort_values(by=['likes'], ascending=[False])[0:10][::-1]
     most_liked_bar = px.bar(most_liked, x='likes', y='title', orientation='h', title='Most Liked Videos')
-    youtube.write(most_liked_bar)
+    youtube.plotly_chart(most_liked_bar, theme='streamlit', use_container_width=True)
     
     #distibution of videos
     year_df = eminem_yt[['uploaded_at','views']]
     year_df['year'] = year_df['uploaded_at'].dt.year
     year_grouped = year_df[['year','views']].groupby('year', as_index=False).sum()
     video_dist = px.violin(year_grouped, y = year_grouped['views'], box=True, # draw box plot inside the violin
-                points='all', width=600, height=1200, hover_data=['year'], title='Distribution of Views by Year')
-    # video_dist.update_layout(margin=dict(t=0, b=0, l=350, r=350))
-    youtube.write(video_dist)
+                points='all', height=800, hover_data=['year'], title='Distribution of YouTube Views')
+    violin_left, violin, violin_right = youtube.columns([1,2,1])
+    violin.plotly_chart(video_dist, theme='streamlit', use_container_width=True)
     
     #view trends
-    view_trend = px.line(year_grouped, x='year', y='views', title='View Trends', text='year', width=1200, height=800)
-    youtube.write(view_trend)
+    view_trend = px.line(year_grouped, x='year', y='views', title='YouTube Views Trend', text='year', width=1200, height=800)
+    youtube.plotly_chart(view_trend, theme='streamlit', use_container_width=True)
     
     #popular day of upload
     eminem_yt['day_of_week'] = eminem_yt['uploaded_at'].dt.day_name()
     days_of_upload = eminem_yt.groupby('day_of_week', as_index=False).count()
     day_pie = px.pie(days_of_upload, values='title', names = 'day_of_week', title='Day Of Uploads')
-    youtube.write(day_pie)
+    day_pie.update_layout(margin=dict(t=30, b=30, l=30, r=30))
+    upload_left, upload, upload_right = youtube.columns([1,2,1])
+    upload.plotly_chart(day_pie, theme='streamlit', use_container_width=True)
     
 with references:
     references.title('data sources')
