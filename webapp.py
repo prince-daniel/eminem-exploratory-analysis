@@ -2,15 +2,9 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import matplotlib.pyplot as plt
-from PIL import Image
-from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
-import numpy as np
-import os
 from pathlib import Path
 import isodate
-from statistics import mean
-from numpy import diff
+import datetime
 
 data_path = Path(__file__).parent / "data"
 img_path = Path(__file__).parent / "img"
@@ -28,7 +22,7 @@ page_bg = f"""
 
 # st.markdown(page_bg, unsafe_allow_html=True)
 st.title("an exploratory analysis on eminem")
-
+st.caption('analysis has been performed on feasible scraped data')
 
 with st.sidebar:
     st.markdown("""
@@ -43,7 +37,6 @@ with st.sidebar:
             <li>First Rapper to Win an Oscar</li>
             <li>15 Grammys</li>
             <li>Top selling artist of the 2000s</li>
-            <li>Broke 2 Guinness World Records For Fast Rapping</li>
         </ul>
         <ul style="list-style-type: none;">
         <li><b><i>“You don’t get another chance, life is no Nintendo game.”</i><b></li>
@@ -74,32 +67,16 @@ youtube = st.container()
 references = st.container()
 wave = st.container()
 
-with dataset:
-    albums_dataset, songs_dataset = dataset.columns(2)
-    #adding albums dataset
-    albums_dataset.title(f'albums ({len(albums)})')
-    albums_dataset.write(albums[['album','songs','year']].head(len(albums)))
-
-    #adding songs dataset
-    songs_dataset.title(f'songs ({len(songs)})')
-    songs_dataset.write(songs[['album','title','lyrics']].head(len(songs)))
-    dataset.markdown("""<h6 style="text-align: right;">analysis has been performed on feasible scraped data &#128591;</h6><br>""",unsafe_allow_html=True)
-
-
 with visualization:
-    # visualization.title("let's take a look :eyes:")
-    visualization.markdown("""
-        <center>
-        <img src="https://media.tenor.com/DKdtevWRXvsAAAAC/lets-have-a-look-gill.gif" width="546" height="546" alt="Lets Have A Look Gill GIF - Lets Have A Look Gill Engvid GIFs" style="max-width: 546px;">
-        </center>
-    """,unsafe_allow_html=True)
+    visualization.title("let's take a look :eyes:")
+   
     visualization.write('\n')
+    
     words_rapped, music_duration = visualization.columns(2)
     words_rapped.subheader(f":speaking_head_in_silhouette: {songs['words'].sum()} words")
     music_duration.subheader("{} seconds/ {} minutes/ {} hours of :musical_note:".format(songs['duration_in_secs'].sum(),songs['duration_in_mins'].sum(),round(songs['duration_in_mins'].sum()/60,2)))
 
     visualization.header('albums & songs')
-    #albums -> remove donut_album and replace with a sankey chart (year -> album -> song)
     year_label = []
     year_label.extend(albums['year'])
     album_label = []
@@ -111,12 +88,9 @@ with visualization:
     all_labels.extend(year_label +  album_label + song_label)
 
     key_value = {v: i for i,v in enumerate(all_labels)}
-    # print(key_value)
 
-    #dataframe -> year, album, title
-    # print(albums[['year','album','songs']])
     p_data = albums[['year','album','songs']]
-    # p_data['songs'] = p_data['songs'].str.len()
+
     year_album = p_data.groupby(['year','album']).count().reset_index()
     temp = p_data
     temp['songs'] = temp['songs'].str.len()
@@ -124,7 +98,6 @@ with visualization:
 
     year_album['songs'] = album_song['songs']
     year_album.columns = ['source','target','value']
-    # print(year_album)
 
     exploded_songs = albums[['album','songs']].explode('songs')
     exploded_songs['value'] = 5
@@ -172,6 +145,7 @@ with visualization:
 
     critic_score_line, user_score_line = visualization.columns(2)
     #user vs critics (linechart)
+    critic_score_df = albums.query('critic_score != 0')
     critic_score_line.header('critic rating')
     critic_score = px.line(albums.query('critic_score != 0'), x='year', y='critic_score', markers=True, hover_data=['critic_rating'])
     critic_score_line.plotly_chart(critic_score, theme='streamlit', use_container_width=True)
@@ -192,42 +166,94 @@ with visualization:
 
 with youtube:
     #picking up top 5 most viewed video
+    youtube.header('most viewed music video')
     most_viewed = eminem_yt[['title','views']].sort_values(by=['views'], ascending=[False])[0:10][::-1]
-    most_viewed_bar = px.bar(most_viewed, x='views', y='title', orientation='h', title='most viewed music video')
+    most_viewed_bar = px.bar(most_viewed, x='views', y='title', orientation='h')
     youtube.plotly_chart(most_viewed_bar, theme='streamlit', use_container_width=True)
     
     #picking up top 5 videos by likes
+    youtube.header('most like music video')
     most_liked = eminem_yt[['title','likes']].sort_values(by=['likes'], ascending=[False])[0:10][::-1]
-    most_liked_bar = px.bar(most_liked, x='likes', y='title', orientation='h', title='most liked music video')
+    most_liked_bar = px.bar(most_liked, x='likes', y='title', orientation='h')
     youtube.plotly_chart(most_liked_bar, theme='streamlit', use_container_width=True)
     
     #distibution of videos
+    youtube.header('YouTube views trend')
     year_df = eminem_yt[['uploaded_at','views']]
     year_df['year'] = year_df['uploaded_at'].dt.year
     year_grouped = year_df[['year','views']].groupby('year', as_index=False).sum()
-    # video_dist = px.histogram(year_grouped, x = year_grouped['year'], y=year_grouped['views'], nbins=10, height=800, hover_data=['year'], title='Distribution of YouTube Views')
-    # video_dist.update_layout(bargap=0.01, nbins=20)
-    # violin_left, violin, violin_right = youtube.columns([1,2,1])
-    # visualization.plotly_chart(video_dist, theme='streamlit', use_container_width=True)
     
     #view trends
-    view_trend = px.line(year_grouped, x='year', y='views', title='YouTube views trend', text='year', width=1200, height=800)
+    view_trend = px.line(year_grouped, x='year', y='views', text='year', width=1200, height=800)
     youtube.plotly_chart(view_trend, theme='streamlit', use_container_width=True)
     
     #popular day of upload
-    eminem_yt['day_of_week'] = eminem_yt['uploaded_at'].dt.day_name()
-    days_of_upload = eminem_yt.groupby('day_of_week', as_index=False).count()
-    day_pie = px.pie(days_of_upload, values='title', names = 'day_of_week', title='YouTube day of upload')
-    day_pie.update_layout(margin=dict(t=30, b=30, l=30, r=30))
-    upload_left, upload, upload_right = youtube.columns([1,2,1])
-    upload.plotly_chart(day_pie, theme='streamlit', use_container_width=True)
+    youtube.header('YouTube uploads')
+    video_uploads = pd.DataFrame(columns=['Morning','Afternoon','Evening','Night'], index=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'])
+    video_uploads = video_uploads.fillna(0)
+    # print(eminem_yt['uploaded_at'])
+    #morning -> 6:00 AM to 11:59 AM
+    #afternoon -> 12:00 PM to 16:59 PM
+    #evening -> 17:00 PM to 20:59 PM
+    #night -> 21:00 PM to 05:59 AM
+
+    def time_of_day(py_datetime):
+        morning_start = datetime.time(6,0,0)
+        morning_end = datetime.time(11,59,59)
+        afternoon_start = datetime.time(12,0,0)
+        afternoon_end = datetime.time(16,59,59)
+        evening_start = datetime.time(17,0,0) 
+        evening_end = datetime.time(20,59,59)
+        night_start = datetime.time(21,0,0)
+        night_end = datetime.time(5,59,59)
+        if morning_start <= py_datetime.time() <= morning_end:
+            return 'Morning'
+        elif afternoon_start <= py_datetime.time() <= afternoon_end:
+            return 'Afternoon'
+        elif evening_start <= py_datetime.time() <= evening_end:
+            return 'Evening'
+        else:
+            return 'Night'
+
+    def day_from_date(py_datetime):
+        if py_datetime.strftime('%A') == 'Monday':
+            return 'Monday' 
+        if py_datetime.strftime('%A') == 'Tuesday':
+            return 'Tuesday'
+        if py_datetime.strftime('%A') == 'Wednesday':
+            return 'Wednesday'
+        if py_datetime.strftime('%A') == 'Thursday':
+            return 'Thursday'
+        if py_datetime.strftime('%A') == 'Friday':
+            return 'Friday'
+        if py_datetime.strftime('%A') == 'Saturday':
+            return 'Saturday'
+        if py_datetime.strftime('%A') == 'Sunday':
+            return 'Sunday'
+
+    def add_time_of_day(dt):
+        py_datetime = dt.to_pydatetime()
+        day = day_from_date(py_datetime)
+        time = time_of_day(py_datetime)
+        video_uploads.loc[day,time] = video_uploads.loc[day,time] + 1
+        
+
+    datetime_list = eminem_yt['uploaded_at'].to_list()
+    for dt in datetime_list:
+        add_time_of_day(dt)
+
+    print(video_uploads)
+    heat_map = px.imshow(video_uploads, labels=dict(color='Video Upload'),height=800)
+    heat_map.update_xaxes(side='top')
     
+    youtube.plotly_chart(heat_map,theme='streamlit',use_container_width=True)
+
 with references:
     references.title('data sources')
-    st.markdown('**:point_right: _https://www.azlyrics.com/e/eminem.html_**')
-    st.markdown('**:point_right: _https://www.albumoftheyear.org/artist/104-eminem/_**')
-    st.markdown('**:point_right: _https://en.wikipedia.org/wiki/Eminem_**')
-    st.markdown('**:point_right: _https://developers.google.com/youtube/v3_**')
+    st.markdown('_https://www.azlyrics.com/e/eminem.html_')
+    st.markdown('_https://www.albumoftheyear.org/artist/104-eminem/_')
+    st.markdown('_https://en.wikipedia.org/wiki/Eminem_')
+    st.markdown('_https://developers.google.com/youtube/v3_')
 
 with wave:
     wave.write('')
@@ -236,5 +262,5 @@ with wave:
         <img src="https://media.tenor.com/lx88s7ymScAAAAAC/bye-wave.gif" width="683" height="379.065" alt="Bye Wave GIF - Bye Wave Eminem GIFs" style="max-width: 683px; border-radius: 5%;">
         </center>
     """,unsafe_allow_html=True)
-    # wave.markdown("""<center><img src="https://media.tenor.com/IcQhcOKnPuIAAAAC/eminem-bowing-eminem-encore.gif" width="683" height="384.0160642570281" alt="Eminem Bowing Eminem Encore GIF - Eminem Bowing Eminem Encore Eminem Encore Bow GIFs" style="max-width: 683px;"><center>""",unsafe_allow_html=True)
-    # wave.markdown("<h1 style='text-align: center; color: black; font-size: 100px'>&#128075;</h1>", unsafe_allow_html=True)
+
+    
