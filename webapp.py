@@ -102,9 +102,8 @@ with visualization:
     exploded_songs = albums[['album','songs']].explode('songs')
     exploded_songs['value'] = 5
     exploded_songs.columns = ['source','target','value']
-    # print(exploded_songs)
+
     links = pd.concat([year_album,exploded_songs])
-    # print(links)
 
     links['source'] = links['source'].map(key_value)
     links['target'] = links['target'].map(key_value)
@@ -130,12 +129,12 @@ with visualization:
     height=5380,
     margin=dict(t=0,b=0),title_text="Eminem Album", font_size=10)
 
-    visualization.plotly_chart(fig, theme='streamlit', use_container_width=True)
+    visualization.plotly_chart(fig, theme=None, use_container_width=True)
 
     visualization.header('album composition')
     donut_album = go.Figure(data=[go.Pie(values=albums['song_count'],labels=albums['album'], hole=0.5, title='albums')])
     donut_album.update_layout(margin=dict(t=0, b=0, l=0, r=0))
-    visualization.plotly_chart(donut_album, theme='streamlit', use_container_width=True)
+    visualization.plotly_chart(donut_album, theme=None, use_container_width=True)
 
     #words_rapped by album
     visualization.header('words in each album')
@@ -191,7 +190,6 @@ with youtube:
     youtube.header('YouTube uploads')
     video_uploads = pd.DataFrame(columns=['Morning','Afternoon','Evening','Night'], index=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'])
     video_uploads = video_uploads.fillna(0)
-    # print(eminem_yt['uploaded_at'])
     #morning -> 6:00 AM to 11:59 AM
     #afternoon -> 12:00 PM to 16:59 PM
     #evening -> 17:00 PM to 20:59 PM
@@ -241,12 +239,11 @@ with youtube:
     datetime_list = eminem_yt['uploaded_at'].to_list()
     for dt in datetime_list:
         add_time_of_day(dt)
-
-    print(video_uploads)
+        
     heat_map = px.imshow(video_uploads, labels=dict(color='Video Upload'),height=800)
     heat_map.update_xaxes(side='top')
     
-    youtube.plotly_chart(heat_map,theme='streamlit',use_container_width=True)
+    youtube.plotly_chart(heat_map,theme=None,use_container_width=True)
 
 with references:
     references.title('data sources')
