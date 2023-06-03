@@ -55,7 +55,7 @@ convert_to_minutes = lambda duration: round(isodate.parse_duration(duration).tot
 albums = pd.read_json(f'{data_path}/processed_albums.json', lines=True)
 songs = pd.read_json(f'{data_path}/processed_songs.json', lines=True)
 eminem_yt = pd.read_csv(f'{data_path}/eminem_yt.csv')
-eminem_yt[datetime_cols] = eminem_yt[datetime_cols].astype('datetime64')
+eminem_yt[datetime_cols] = eminem_yt[datetime_cols].astype('datetime64[ns]')
 
 words_by_album = songs.groupby(by='album', as_index=False).agg(sum)
 
